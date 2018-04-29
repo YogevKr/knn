@@ -29,7 +29,8 @@ public class MainHW3 {
 	}
 
 	public static void main(String[] args) throws Exception {
-        //TODO: complete the Main method
+		Instances trainingAutoPrice = loadData("/Users/yogev/Google Drive/IDC/Year 2/Semester 2/Machine Learning from Data/HW/3/HomeWork3/src/HomeWork3/auto_price.txt");
+		FeatureScaler.scaleData(trainingAutoPrice);
 	}
 
 }

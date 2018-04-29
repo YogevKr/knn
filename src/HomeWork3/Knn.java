@@ -6,11 +6,14 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 class DistanceCalculator {
+
+
+
     /**
     * We leave it up to you wheter you want the distance method to get all relevant
     * parameters(lp, efficient, etc..) or have it has a class variables.
     */
-    public double distance (Instance one, Instance two) {
+    public double distance (Instance one, Instance two, ) {
         return 0.0;
     }
 
@@ -104,8 +107,8 @@ public class Knn implements Classifier {
      * Finds the k nearest neighbors.
      * @param instance
      */
-    public /* Collection of your choice */ findNearestNeighbors(Instance instance) {
-
+    public void findNearestNeighbors(Instance instance) {
+        // TODO: 29/04/2018  Return type: /* Collection of your choice */
     }
 
     /**
