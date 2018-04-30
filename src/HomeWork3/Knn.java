@@ -168,6 +168,9 @@ public class Knn implements Classifier {
     public enum DistanceCheck{Regular, Efficient}
 
     private Instances m_trainingInstances;
+    private Instances m_trainingInstances_Backup;
+
+
     private WeightingScheme m_WeightingScheme;
     private LpDistance m_p;
     private boolean m_EfficientCheck;
@@ -258,9 +261,12 @@ public class Knn implements Classifier {
      * @return The cross validation error.
      */
     public double crossValidationError(Instances insances, int num_of_folds) throws Exception {
+        m_trainingInstances_Backup = m_trainingInstances;
+
         Instances trainingSet, validationSet;
         insances.randomize(new Random(1));
         int foldSize = insances.numInstances() / num_of_folds;
+        double errorSum = 0;
 
         // use StratifiedRemoveFolds to randomly split the data
         StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
@@ -288,9 +294,13 @@ public class Knn implements Classifier {
             filter.setInvertSelection(true);     // invert the selection to get other data
             trainingSet = Filter.useFilter(insances, filter);
 
+            m_trainingInstances = trainingSet;
+
+            errorSum =+ calcAvgError(validationSet);
         }
 
-        return 0.0;
+        m_trainingInstances = m_trainingInstances_Backup;
+        return errorSum;
     }
 
     /**
