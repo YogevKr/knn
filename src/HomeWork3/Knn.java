@@ -265,20 +265,13 @@ public class Knn implements Classifier {
 
         Instances trainingSet, validationSet;
         instances.randomize(new Random(1));
-        int foldSize = instances.numInstances() / num_of_folds;
+
         double errorSum = 0;
 
         for (int i = 0; i < num_of_folds; i++) {
 
-            StratifiedRemoveFolds validationFilter = createFilter(num_of_folds, instances, false, i);
-            StratifiedRemoveFolds trainingFilter = createFilter(num_of_folds, instances, true, i);
-
-            // apply filter for test data here
-            validationSet = Filter.useFilter(instances, validationFilter);
-
-            trainingFilter.setInvertSelection(true);
-            trainingSet = Filter.useFilter(instances, trainingFilter);
-
+            validationSet = instances.testCV(num_of_folds, i);
+            trainingSet = instances.trainCV(num_of_folds, i);
             m_trainingInstances = trainingSet;
 
             errorSum =+ calcAvgError(validationSet);
@@ -286,35 +279,6 @@ public class Knn implements Classifier {
 
         m_trainingInstances = m_trainingInstances_Backup;
         return errorSum;
-    }
-
-//    private Instances removeInstancesFromSet(Instances set, Instances remove) throws Exception {
-//        for (int i = set.numInstances() - 1; i >= 0; i--) {
-//            Instance inst = set.get(i);
-//            if (condition(inst)) {
-//                set.delete(i);
-//            }
-//        }
-//    }
-
-    private StratifiedRemoveFolds createFilter(int num_of_folds, Instances instances, boolean invert, int i) throws Exception {
-        // set options for creating the subset of data
-        String[] options = new String[6];
-
-        options[0] = "-N";                 // indicate we want to set the number of folds
-        options[1] = Integer.toString(num_of_folds);  // split the data into five random folds
-        options[2] = "-F";                 // indicate we want to select a specific fold
-        options[3] = Integer.toString(i + 1);  // select the first fold
-        options[4] = "-S";                 // indicate we want to set the random seed
-        options[5] = Integer.toString(0);  // set the random seed to 1
-
-        // use StratifiedRemoveFolds to randomly split the data
-        StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
-        filter.setInputFormat(instances);       // prepare the filter for the data format
-        filter.setInvertSelection(invert);  // do not invert the selection
-        filter.setOptions(options);        // set the filter options
-
-        return filter;
     }
 
     /**
