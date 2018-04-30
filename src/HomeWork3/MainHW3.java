@@ -33,21 +33,14 @@ public class MainHW3 {
 		Instances scaled_trainingAutoPrice = FeatureScaler.scaleData(trainingAutoPrice);
 
 		Knn knn = new Knn();
-		Knn scaled_knn = new Knn();
-
 		knn.buildClassifier(trainingAutoPrice);
-		scaled_knn.buildClassifier(scaled_trainingAutoPrice);
 
 		Knn.WeightingScheme chosenWeightingScheme = null;
 		Knn.LpDistance chosenP = null;
 		int chosenK = 0;
 		double bestError = Double.MAX_VALUE, error;
 
-		Knn.WeightingScheme scaled_chosenWeightingScheme;
-		Knn.LpDistance scaled_chosenP;
-		int scaled_chosenK;
-		double scaled_bestError = Double.MAX_VALUE;
-
+		// Original
 		for (Knn.WeightingScheme weightingScheme : Knn.WeightingScheme.values()) {
 			for (Knn.LpDistance p : Knn.LpDistance.values()) {
 				for (int k = 1; k <= 20; k++) {
@@ -64,16 +57,47 @@ public class MainHW3 {
 			}
 		}
 
-		System.out.println("K = " + chosenK +", lp = "+ chosenP +
-				", majority function = " + chosenWeightingScheme + ", Error = " + bestError);
 
-//
-//		knn.setUp(Knn.WeightingScheme.Weighted, Knn.LpDistance.Infinity, Knn.DistanceCheck.Regular, 10);
-//		System.out.println(knn.crossValidationError(trainingAutoPrice, 10));
-//
-//		knn.setUp(Knn.WeightingScheme.Weighted, Knn.LpDistance.Infinity, Knn.DistanceCheck.Efficient, 10);
-//		System.out.println(knn.crossValidationError(trainingAutoPrice, 10));
+		Knn scaled_knn = new Knn();
+		scaled_knn.buildClassifier(scaled_trainingAutoPrice);
 
+		Knn.WeightingScheme scaled_chosenWeightingScheme = null;
+		Knn.LpDistance scaled_chosenP = null;
+		int scaled_chosenK = 0;
+		double scaled_bestError = Double.MAX_VALUE, scaled_error;
+
+		// scaled
+		for (Knn.WeightingScheme weightingScheme : Knn.WeightingScheme.values()) {
+			for (Knn.LpDistance scaled_p : Knn.LpDistance.values()) {
+				for (int scaled_k = 1; scaled_k <= 20; scaled_k++) {
+					scaled_knn.setUp(weightingScheme, scaled_p, Knn.DistanceCheck.Regular, scaled_k);
+					scaled_error = scaled_knn.crossValidationError(trainingAutoPrice, 10);
+
+					if (scaled_error < scaled_bestError){
+						scaled_chosenWeightingScheme = weightingScheme;
+						scaled_chosenK = scaled_k;
+						scaled_chosenP = scaled_p;
+						scaled_bestError = scaled_error;
+					}
+				}
+			}
+		}
+
+		System.out.println("----------------------------");
+		System.out.println("Results for original dataset: ");
+		System.out.println("----------------------------");
+
+		System.out.println("Cross validation error with K =  " + chosenK +", lp = "+ chosenP +
+				", majority function = " + chosenWeightingScheme + " for auto_price data is: " + bestError);
+
+		System.out.println("");
+
+		System.out.println("----------------------------");
+		System.out.println("Results for scaled dataset: ");
+		System.out.println("----------------------------");
+
+		System.out.println("Cross validation error with K =  " + scaled_chosenK +", lp = "+ scaled_chosenP +
+				", majority function = " + scaled_chosenWeightingScheme + " for auto_price data is: " + scaled_bestError);
 
 
 
