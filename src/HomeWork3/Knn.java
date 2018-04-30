@@ -169,6 +169,7 @@ public class Knn implements Classifier {
     private WeightingScheme m_WeightingScheme;
     private LpDistance m_p;
     private boolean m_EfficientCheck;
+    private int m_k;
 
     @Override
     /**
@@ -180,10 +181,14 @@ public class Knn implements Classifier {
         m_trainingInstances = instances;
     }
 
-    public void setUp(WeightingScheme i_WeightingScheme, LpDistance i_p, DistanceCheck i_DistanceCheck){
+    public void setUp(WeightingScheme i_WeightingScheme, LpDistance i_p,
+                      DistanceCheck i_DistanceCheck, int k){
+
         m_WeightingScheme = i_WeightingScheme;
         m_p = i_p;
         m_EfficientCheck  = i_DistanceCheck == DistanceCheck.Efficient;
+        m_k = k;
+
     }
 
     private double distance(Instance one, Instance two){
@@ -208,25 +213,40 @@ public class Knn implements Classifier {
         }
     }
 
-
     /**
      * Returns the knn prediction on the given instance.
      * @param instance
      * @return The instance predicted value.
      */
     public double regressionPrediction(Instance instance) {
-        return 0.0;
+        PriorityQueue<Entry> heap = findNearestNeighbors(instance);
+
+        if (m_WeightingScheme == WeightingScheme.Weighted){
+            return getWeightedAverageValue(heap);
+        }
+        else {
+            return getAverageValue(heap);
+        }
     }
 
     /**
      * Caclcualtes the average error on a give set of instances.
      * The average error is the average absolute error between the target value and the predicted
      * value across all insatnces.
-     * @param insatnces
+     * @param instances
      * @return
      */
-    public double calcAvgError (Instances insatnces){
-        return 0.0;
+    public double calcAvgError (Instances instances){
+        double sumOfErrors = 0, prediction;
+        Instance currentInstance;
+
+        for (int i = 0; i < instances.numInstances(); i++) {
+            currentInstance = instances.get(i);
+            prediction = regressionPrediction(currentInstance);
+
+            sumOfErrors += Math.abs(prediction - currentInstance.classValue());
+        }
+        return sumOfErrors / instances.numInstances();
     }
 
     /**
@@ -239,14 +259,13 @@ public class Knn implements Classifier {
         return 0.0;
     }
 
-
     /**
      * Finds the k nearest neighbors.
      * @param instance
      */
-    public  PriorityQueue<Entry> findNearestNeighbors(Instance instance, int k) {
+    public  PriorityQueue<Entry> findNearestNeighbors(Instance instance) {
 //        Instances kNearestNeighbors = new Instances(m_trainingInstances, k);
-        PriorityQueue<Entry> heap = new PriorityQueue<>();
+        PriorityQueue<Entry> heap = new PriorityQueue<>(m_k);
 
         if (!m_EfficientCheck){
             for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
@@ -262,12 +281,10 @@ public class Knn implements Classifier {
                     heap.add(new Entry(instance, distance(currentInstance, instance, heap.peek().getDistance())));
             }
         }
-
 //        while (!heap.isEmpty()){
 //            kNearestNeighbors.add(heap.poll().getInstance());
 //        }
 //        return kNearestNeighbors;
-
         return heap;
     }
 
@@ -276,14 +293,15 @@ public class Knn implements Classifier {
      * @param
      * @return
      */
-    public double getAverageValue (Instances i_instances) {
+    public double getAverageValue (PriorityQueue<Entry> heap) {
         double sum = 0;
-        int numOfInstances = i_instances.numInstances();
+        int numOfInstances = heap.size();
+        Entry entry;
 
-        for (int i = 0; i < numOfInstances; i++) {
-            sum += i_instances.get(i).classValue();
+        while (!heap.isEmpty()) {
+            entry = heap.poll();
+            sum += entry.getInstance().classValue();
         }
-
         return sum / numOfInstances;
     }
 
@@ -292,7 +310,7 @@ public class Knn implements Classifier {
      * with respect to their distance from a specific instance.
      * @return
      */
-    public double getWeightedAverageValue( PriorityQueue<Entry> heap) {
+    public double getWeightedAverageValue(PriorityQueue<Entry> heap) {
         double sumOfOneOverSquaredDistance = 0, sumOfValueDividedSquaredDistance = 0;
         double distanceSquared, instanceValue;
         Entry currentEntry;
