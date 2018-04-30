@@ -21,6 +21,5 @@ public class FeatureScaler {
 		defaultStdData = Filter.useFilter(instances, filter);
 
 		return defaultStdData;
-
 	}
 }

@@ -147,14 +147,14 @@ class Entry implements Comparable<Entry> {
 
     @Override
     public int compareTo(Entry other) {
-        return Double.compare(this.getDistance(), other.getDistance());
+        return Double.compare(other.getDistance(), this.getDistance());
     }
 }
 
 public class Knn implements Classifier {
 
     public enum WeightingScheme{Uniform, Weighted}
-    public enum LpDistance {one(1), Two(2), Three(3), Infinity(0);
+    public enum LpDistance {One(1), Two(2), Three(3), Infinity(0);
         private int p;
 
         LpDistance(int p) {
@@ -264,7 +264,7 @@ public class Knn implements Classifier {
         m_trainingInstances_Backup = m_trainingInstances;
 
         Instances trainingSet, validationSet;
-        instances.randomize(new Random(1));
+//        instances.randomize(new Random(0));
 
         double errorSum = 0;
 
@@ -276,7 +276,6 @@ public class Knn implements Classifier {
 
             errorSum =+ calcAvgError(validationSet);
         }
-
         m_trainingInstances = m_trainingInstances_Backup;
         return errorSum;
     }
@@ -286,27 +285,37 @@ public class Knn implements Classifier {
      * @param instance
      */
     public  PriorityQueue<Entry> findNearestNeighbors(Instance instance) {
-//        Instances kNearestNeighbors = new Instances(m_trainingInstances, k);
-        PriorityQueue<Entry> heap = new PriorityQueue<>(m_k);
+        PriorityQueue<Entry> heap = new PriorityQueue<>();
 
         if (!m_EfficientCheck){
             for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
                 Instance currentInstance = m_trainingInstances.get(i);
-                if (!currentInstance.equals(instance))
-                heap.add(new Entry(instance, distance(currentInstance, instance)));
+                if (!currentInstance.equals(instance)){
+                    heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
+                    if (heap.size() > m_k){
+                        heap.poll();
+                    }
+                }
             }
         }
         else {
             for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
                 Instance currentInstance = m_trainingInstances.get(i);
                 if (!currentInstance.equals(instance))
-                    heap.add(new Entry(instance, distance(currentInstance, instance, heap.peek().getDistance())));
+                    if (!heap.isEmpty()){
+                        heap.add(new Entry(currentInstance, distance(currentInstance, instance, heap.peek().getDistance())));
+                        if (heap.size() > m_k){
+                            heap.poll();
+                        }
+                    }
+                    else {
+                        heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
+                        if (heap.size() > m_k){
+                            heap.poll();
+                        }
+                    }
             }
         }
-//        while (!heap.isEmpty()){
-//            kNearestNeighbors.add(heap.poll().getInstance());
-//        }
-//        return kNearestNeighbors;
         return heap;
     }
 
@@ -317,14 +326,13 @@ public class Knn implements Classifier {
      */
     public double getAverageValue (PriorityQueue<Entry> heap) {
         double sum = 0;
-        int numOfInstances = heap.size();
         Entry entry;
 
         while (!heap.isEmpty()) {
             entry = heap.poll();
             sum += entry.getInstance().classValue();
         }
-        return sum / numOfInstances;
+        return sum / m_k;
     }
 
     /**
@@ -345,9 +353,8 @@ public class Knn implements Classifier {
 
             if (distanceSquared != 0){
                 sumOfValueDividedSquaredDistance += instanceValue / distanceSquared;
+                sumOfOneOverSquaredDistance += 1 / distanceSquared;
             }
-
-            sumOfOneOverSquaredDistance += 1 / distanceSquared;
         }
         return sumOfValueDividedSquaredDistance / sumOfOneOverSquaredDistance;
     }
