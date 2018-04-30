@@ -118,7 +118,6 @@ class DistanceCalculator {
                     max = Double.MAX_VALUE;
                 }
             }
-
         }
         return max;
     }
@@ -136,7 +135,7 @@ public class Knn implements Classifier {
      * @param instances
      */
     public void buildClassifier(Instances instances) throws Exception {
-
+        m_trainingInstances = instances;
     }
 
     /**
