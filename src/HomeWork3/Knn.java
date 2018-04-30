@@ -5,8 +5,10 @@ import weka.core.Capabilities;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.stopwords.Null;
-
+import weka.filters.supervised.instance.StratifiedRemoveFolds;
 import java.util.PriorityQueue;
+import java.util.Random;
+import weka.filters.Filter;
 
 class DistanceCalculator {
 
@@ -255,7 +257,39 @@ public class Knn implements Classifier {
      * @param num_of_folds The number of folds to use.
      * @return The cross validation error.
      */
-    public double crossValidationError(Instances insances, int num_of_folds){
+    public double crossValidationError(Instances insances, int num_of_folds) throws Exception {
+        Instances trainingSet, validationSet;
+        insances.randomize(new Random(1));
+        int foldSize = insances.numInstances() / num_of_folds;
+
+        // use StratifiedRemoveFolds to randomly split the data
+        StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
+
+        // set options for creating the subset of data
+        String[] options = new String[6];
+
+        options[0] = "-N";                 // indicate we want to set the number of folds
+        options[1] = Integer.toString(num_of_folds);  // split the data into five random folds
+        options[2] = "-F";                 // indicate we want to select a specific fold
+        options[4] = "-S";                 // indicate we want to set the random seed
+        options[5] = Integer.toString(0);  // set the random seed to 1
+
+        filter.setInputFormat(insances);       // prepare the filter for the data format
+        filter.setInvertSelection(false);  // do not invert the selection
+
+        for (int i = 0; i < num_of_folds; i++) {
+            options[3] = Integer.toString(i);  // select the first fold
+            filter.setOptions(options);        // set the filter options
+
+            // apply filter for test data here
+            validationSet = Filter.useFilter(insances, filter);
+
+            //  prepare and apply filter for training data here
+            filter.setInvertSelection(true);     // invert the selection to get other data
+            trainingSet = Filter.useFilter(insances, filter);
+
+        }
+
         return 0.0;
     }
 
