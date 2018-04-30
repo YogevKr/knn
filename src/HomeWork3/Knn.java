@@ -9,11 +9,9 @@ import weka.filters.supervised.instance.StratifiedRemoveFolds;
 import java.util.PriorityQueue;
 import java.util.Random;
 import weka.filters.Filter;
+import weka.filters.unsupervised.instance.RemoveWithValues;
 
 class DistanceCalculator {
-
-
-
     /**
     * We leave it up to you wheter you want the distance method to get all relevant
     * parameters(lp, efficient, etc..) or have it has a class variables.
@@ -59,6 +57,7 @@ class DistanceCalculator {
      * @return
      */
     private static double lInfinityDistance(Instance one, Instance two) {
+        // TODO: 30/04/2018 Check if thats what they mean by efficient
         int numOfAttributes = one.numAttributes() - 1;
         double max = 0, different;
 
@@ -79,6 +78,7 @@ class DistanceCalculator {
      * @return
      */
     private static double efficientLpDistance(Instance one, Instance two, double threshold, int p) {
+        // TODO: 30/04/2018 Check if thats what they mean by efficient
         int numOfAttributes = one.numAttributes() - 1;
         double absoluteValue, powerOfDifference, sum = 0;
 
@@ -256,43 +256,28 @@ public class Knn implements Classifier {
 
     /**
      * Calculates the cross validation error, the average error on all folds.
-     * @param insances Insances used for the cross validation
+     * @param instances Insances used for the cross validation
      * @param num_of_folds The number of folds to use.
      * @return The cross validation error.
      */
-    public double crossValidationError(Instances insances, int num_of_folds) throws Exception {
+    public double crossValidationError(Instances instances, int num_of_folds) throws Exception {
         m_trainingInstances_Backup = m_trainingInstances;
 
         Instances trainingSet, validationSet;
-        insances.randomize(new Random(1));
-        int foldSize = insances.numInstances() / num_of_folds;
+        instances.randomize(new Random(1));
+        int foldSize = instances.numInstances() / num_of_folds;
         double errorSum = 0;
 
-        // use StratifiedRemoveFolds to randomly split the data
-        StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
-
-        // set options for creating the subset of data
-        String[] options = new String[6];
-
-        options[0] = "-N";                 // indicate we want to set the number of folds
-        options[1] = Integer.toString(num_of_folds);  // split the data into five random folds
-        options[2] = "-F";                 // indicate we want to select a specific fold
-        options[4] = "-S";                 // indicate we want to set the random seed
-        options[5] = Integer.toString(0);  // set the random seed to 1
-
-        filter.setInputFormat(insances);       // prepare the filter for the data format
-        filter.setInvertSelection(false);  // do not invert the selection
-
         for (int i = 0; i < num_of_folds; i++) {
-            options[3] = Integer.toString(i);  // select the first fold
-            filter.setOptions(options);        // set the filter options
+
+            StratifiedRemoveFolds validationFilter = createFilter(num_of_folds, instances, false, i);
+            StratifiedRemoveFolds trainingFilter = createFilter(num_of_folds, instances, true, i);
 
             // apply filter for test data here
-            validationSet = Filter.useFilter(insances, filter);
+            validationSet = Filter.useFilter(instances, validationFilter);
 
-            //  prepare and apply filter for training data here
-            filter.setInvertSelection(true);     // invert the selection to get other data
-            trainingSet = Filter.useFilter(insances, filter);
+            trainingFilter.setInvertSelection(true);
+            trainingSet = Filter.useFilter(instances, trainingFilter);
 
             m_trainingInstances = trainingSet;
 
@@ -301,6 +286,35 @@ public class Knn implements Classifier {
 
         m_trainingInstances = m_trainingInstances_Backup;
         return errorSum;
+    }
+
+//    private Instances removeInstancesFromSet(Instances set, Instances remove) throws Exception {
+//        for (int i = set.numInstances() - 1; i >= 0; i--) {
+//            Instance inst = set.get(i);
+//            if (condition(inst)) {
+//                set.delete(i);
+//            }
+//        }
+//    }
+
+    private StratifiedRemoveFolds createFilter(int num_of_folds, Instances instances, boolean invert, int i) throws Exception {
+        // set options for creating the subset of data
+        String[] options = new String[6];
+
+        options[0] = "-N";                 // indicate we want to set the number of folds
+        options[1] = Integer.toString(num_of_folds);  // split the data into five random folds
+        options[2] = "-F";                 // indicate we want to select a specific fold
+        options[3] = Integer.toString(i + 1);  // select the first fold
+        options[4] = "-S";                 // indicate we want to set the random seed
+        options[5] = Integer.toString(0);  // set the random seed to 1
+
+        // use StratifiedRemoveFolds to randomly split the data
+        StratifiedRemoveFolds filter = new StratifiedRemoveFolds();
+        filter.setInputFormat(instances);       // prepare the filter for the data format
+        filter.setInvertSelection(invert);  // do not invert the selection
+        filter.setOptions(options);        // set the filter options
+
+        return filter;
     }
 
     /**
@@ -365,7 +379,10 @@ public class Knn implements Classifier {
             distanceSquared = Math.pow(currentEntry.getDistance(), 2);
             instanceValue = currentEntry.getInstance().classValue();
 
-            sumOfValueDividedSquaredDistance += instanceValue / distanceSquared;
+            if (distanceSquared != 0){
+                sumOfValueDividedSquaredDistance += instanceValue / distanceSquared;
+            }
+
             sumOfOneOverSquaredDistance += 1 / distanceSquared;
         }
         return sumOfValueDividedSquaredDistance / sumOfOneOverSquaredDistance;

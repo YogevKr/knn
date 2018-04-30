@@ -20,7 +20,6 @@ public class FeatureScaler {
 		filter.setInputFormat(instances);
 		defaultStdData = Filter.useFilter(instances, filter);
 
-		System.out.println(defaultStdData.toString());
 		return defaultStdData;
 
 	}
