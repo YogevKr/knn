@@ -13,8 +13,20 @@ class DistanceCalculator {
     * We leave it up to you wheter you want the distance method to get all relevant
     * parameters(lp, efficient, etc..) or have it has a class variables.
     */
-    public double distance (Instance one, Instance two, ) {
-        return 0.0;
+    public double distance (Instance one, Instance two, int p) {
+        return lpDistance(one, two, p);
+    }
+
+    public double distance (Instance one, Instance two, double threshold, int p) {
+        return efficientLpDistance(one, two, threshold, p);
+    }
+
+    public double distance (Instance one, Instance two) {
+        return lInfinityDistance(one, two);
+    }
+
+    public double distance (Instance one, Instance two, double threshold) {
+        return efficientLInfinityDistance(one, two, threshold);
     }
 
     /**
@@ -22,8 +34,17 @@ class DistanceCalculator {
      * @param one
      * @param two
      */
-    private double lpDistance(Instance one, Instance two) {
-        return 0.0;
+    private double lpDistance(Instance one, Instance two, int p) {
+        int numOfAttributes = one.numAttributes() - 1;
+        double absoluteValue, powerOfDifference, sum = 0;
+
+        for (int i = 0; i < numOfAttributes; i++) {
+
+            powerOfDifference = Math.pow((one.value(i) - two.value(i)), p);
+            absoluteValue = Math.abs(powerOfDifference);
+            sum += absoluteValue;
+        }
+        return Math.pow(sum, (1 / p));
     }
 
     /**
@@ -33,7 +54,17 @@ class DistanceCalculator {
      * @return
      */
     private double lInfinityDistance(Instance one, Instance two) {
-        return 0.0;
+        int numOfAttributes = one.numAttributes() - 1;
+        double max = 0, different;
+
+        for (int i = 0; i < numOfAttributes; i++) {
+            different = Math.abs(one.value(i) - two.value(i));
+
+            if (different > max){
+                max = different;
+            }
+        }
+        return max;
     }
 
     /**
@@ -42,8 +73,29 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double efficientLpDistance(Instance one, Instance two) {
-        return 0.0;
+    private double efficientLpDistance(Instance one, Instance two, double threshold, int p) {
+        int numOfAttributes = one.numAttributes() - 1;
+        double absoluteValue, powerOfDifference, sum = 0;
+
+
+        for (int i = 0; i < numOfAttributes; i++) {
+
+            powerOfDifference = Math.pow((one.value(i) - two.value(i)), p);
+            absoluteValue = Math.abs(powerOfDifference);
+            sum += absoluteValue;
+
+            if (sum > threshold){
+                sum = Double.MAX_VALUE;
+                break;
+            }
+        }
+
+        if (sum != Double.MAX_VALUE){
+            return sum;
+        }
+        else{
+            return Math.pow(sum, (1 / p));
+        }
     }
 
     /**
@@ -52,8 +104,23 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double efficientLInfinityDistance(Instance one, Instance two) {
-        return 0.0;
+    private double efficientLInfinityDistance(Instance one, Instance two, double threshold) {
+        int numOfAttributes = one.numAttributes() - 1;
+        double max = 0, different;
+
+        for (int i = 0; i < numOfAttributes; i++) {
+            different = Math.abs(one.value(i) - two.value(i));
+
+            if (different > max){
+                max = different;
+
+                if (max > threshold){
+                    max = Double.MAX_VALUE;
+                }
+            }
+
+        }
+        return max;
     }
 }
 
