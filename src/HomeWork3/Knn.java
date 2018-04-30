@@ -4,6 +4,9 @@ import weka.classifiers.Classifier;
 import weka.core.Capabilities;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.stopwords.Null;
+
+import java.util.PriorityQueue;
 
 class DistanceCalculator {
 
@@ -13,19 +16,19 @@ class DistanceCalculator {
     * We leave it up to you wheter you want the distance method to get all relevant
     * parameters(lp, efficient, etc..) or have it has a class variables.
     */
-    public double distance (Instance one, Instance two, int p) {
+    public static double distance (Instance one, Instance two, int p) {
         return lpDistance(one, two, p);
     }
 
-    public double distance (Instance one, Instance two, double threshold, int p) {
+    public static double distance (Instance one, Instance two, double threshold, int p) {
         return efficientLpDistance(one, two, threshold, p);
     }
 
-    public double distance (Instance one, Instance two) {
+    public static double distance (Instance one, Instance two) {
         return lInfinityDistance(one, two);
     }
 
-    public double distance (Instance one, Instance two, double threshold) {
+    public static double distance (Instance one, Instance two, double threshold) {
         return efficientLInfinityDistance(one, two, threshold);
     }
 
@@ -34,7 +37,7 @@ class DistanceCalculator {
      * @param one
      * @param two
      */
-    private double lpDistance(Instance one, Instance two, int p) {
+    private static double lpDistance(Instance one, Instance two, int p) {
         int numOfAttributes = one.numAttributes() - 1;
         double absoluteValue, powerOfDifference, sum = 0;
 
@@ -53,7 +56,7 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double lInfinityDistance(Instance one, Instance two) {
+    private static double lInfinityDistance(Instance one, Instance two) {
         int numOfAttributes = one.numAttributes() - 1;
         double max = 0, different;
 
@@ -73,7 +76,7 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double efficientLpDistance(Instance one, Instance two, double threshold, int p) {
+    private static double efficientLpDistance(Instance one, Instance two, double threshold, int p) {
         int numOfAttributes = one.numAttributes() - 1;
         double absoluteValue, powerOfDifference, sum = 0;
 
@@ -104,7 +107,7 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double efficientLInfinityDistance(Instance one, Instance two, double threshold) {
+    private static double efficientLInfinityDistance(Instance one, Instance two, double threshold) {
         int numOfAttributes = one.numAttributes() - 1;
         double max = 0, different;
 
@@ -123,10 +126,49 @@ class DistanceCalculator {
     }
 }
 
+class Entry implements Comparable<Entry> {
+    private Instance instance;
+    private double distance;
+
+    public Entry(Instance instance, double distance) {
+        this.instance = instance;
+        this.distance = distance;
+    }
+
+    public Instance getInstance(){
+        return this.instance;
+    }
+
+    public double getDistance(){
+        return this.distance;
+    }
+
+    @Override
+    public int compareTo(Entry other) {
+        return Double.compare(this.getDistance(), other.getDistance());
+    }
+}
+
 public class Knn implements Classifier {
 
+    public enum WeightingScheme{Uniform, Weighted}
+    public enum LpDistance {one(1), Two(2), Three(3), Infinity(0);
+        private int p;
+
+        LpDistance(int p) {
+            this.p = p;
+        }
+
+        public int getP() {
+            return p;
+        }
+    }
     public enum DistanceCheck{Regular, Efficient}
+
     private Instances m_trainingInstances;
+    private WeightingScheme m_WeightingScheme;
+    private LpDistance m_p;
+    private boolean m_EfficientCheck;
 
     @Override
     /**
@@ -137,6 +179,35 @@ public class Knn implements Classifier {
     public void buildClassifier(Instances instances) throws Exception {
         m_trainingInstances = instances;
     }
+
+    public void setUp(WeightingScheme i_WeightingScheme, LpDistance i_p, DistanceCheck i_DistanceCheck){
+        m_WeightingScheme = i_WeightingScheme;
+        m_p = i_p;
+        m_EfficientCheck  = i_DistanceCheck == DistanceCheck.Efficient;
+    }
+
+    private double distance(Instance one, Instance two){
+        // Non efficient, p=INF
+        if (m_p == LpDistance.Infinity){
+            return DistanceCalculator.distance(one, two);
+        }
+        // Non efficient, p!=INF
+        else {
+            return DistanceCalculator.distance(one, two, m_p.getP());
+        }
+    }
+
+    private double distance(Instance one, Instance two, double threshold){
+        // Efficient, p=INF
+        if (m_p == LpDistance.Infinity) {
+            return DistanceCalculator.distance(one, two, threshold);
+        }
+        // Efficient, p!=INF
+        else {
+            return DistanceCalculator.distance(one, two, threshold, m_p.getP());
+        }
+    }
+
 
     /**
      * Returns the knn prediction on the given instance.
@@ -173,8 +244,31 @@ public class Knn implements Classifier {
      * Finds the k nearest neighbors.
      * @param instance
      */
-    public void findNearestNeighbors(Instance instance) {
-        // TODO: 29/04/2018  Return type: /* Collection of your choice */
+    public  PriorityQueue<Entry> findNearestNeighbors(Instance instance, int k) {
+//        Instances kNearestNeighbors = new Instances(m_trainingInstances, k);
+        PriorityQueue<Entry> heap = new PriorityQueue<>();
+
+        if (!m_EfficientCheck){
+            for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
+                Instance currentInstance = m_trainingInstances.get(i);
+                if (!currentInstance.equals(instance))
+                heap.add(new Entry(instance, distance(currentInstance, instance)));
+            }
+        }
+        else {
+            for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
+                Instance currentInstance = m_trainingInstances.get(i);
+                if (!currentInstance.equals(instance))
+                    heap.add(new Entry(instance, distance(currentInstance, instance, heap.peek().getDistance())));
+            }
+        }
+
+//        while (!heap.isEmpty()){
+//            kNearestNeighbors.add(heap.poll().getInstance());
+//        }
+//        return kNearestNeighbors;
+
+        return heap;
     }
 
     /**
@@ -182,8 +276,15 @@ public class Knn implements Classifier {
      * @param
      * @return
      */
-    public double getAverageValue (/* Collection of your choice */) {
-        return 0.0;
+    public double getAverageValue (Instances i_instances) {
+        double sum = 0;
+        int numOfInstances = i_instances.numInstances();
+
+        for (int i = 0; i < numOfInstances; i++) {
+            sum += i_instances.get(i).classValue();
+        }
+
+        return sum / numOfInstances;
     }
 
     /**
@@ -191,8 +292,21 @@ public class Knn implements Classifier {
      * with respect to their distance from a specific instance.
      * @return
      */
-    public double getWeightedAverageValue(/* Collection of your choice */) {
-        return 0.0;
+    public double getWeightedAverageValue( PriorityQueue<Entry> heap) {
+        double sumOfOneOverSquaredDistance = 0, sumOfValueDividedSquaredDistance = 0;
+        double distanceSquared, instanceValue;
+        Entry currentEntry;
+
+        while (!heap.isEmpty()){
+            currentEntry = heap.poll();
+
+            distanceSquared = Math.pow(currentEntry.getDistance(), 2);
+            instanceValue = currentEntry.getInstance().classValue();
+
+            sumOfValueDividedSquaredDistance += instanceValue / distanceSquared;
+            sumOfOneOverSquaredDistance += 1 / distanceSquared;
+        }
+        return sumOfValueDividedSquaredDistance / sumOfOneOverSquaredDistance;
     }
 
 
