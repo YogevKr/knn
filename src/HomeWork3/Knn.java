@@ -4,12 +4,9 @@ import weka.classifiers.Classifier;
 import weka.core.Capabilities;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.stopwords.Null;
-import weka.filters.supervised.instance.StratifiedRemoveFolds;
+
 import java.util.PriorityQueue;
 import java.util.Random;
-import weka.filters.Filter;
-import weka.filters.unsupervised.instance.RemoveWithValues;
 
 class DistanceCalculator {
     /**
@@ -167,14 +164,18 @@ public class Knn implements Classifier {
     }
     public enum DistanceCheck{Regular, Efficient}
 
-    private Instances m_trainingInstances;
-    private Instances m_trainingInstances_Backup;
+    private Instances m_TrainingInstances;
+    private Instances m_TrainingInstances_Backup;
 
 
     private WeightingScheme m_WeightingScheme;
-    private LpDistance m_p;
+    private LpDistance m_P;
     private boolean m_EfficientCheck;
-    private int m_k;
+    private int m_K;
+
+    private long m_AverageCVRunningTime;
+    private long m_TotalCVRunningTime;
+
 
     @Override
     /**
@@ -183,38 +184,38 @@ public class Knn implements Classifier {
      * @param instances
      */
     public void buildClassifier(Instances instances) throws Exception {
-        m_trainingInstances = instances;
+        m_TrainingInstances = instances;
     }
 
     public void setUp(WeightingScheme i_WeightingScheme, LpDistance i_p,
                       DistanceCheck i_DistanceCheck, int k){
 
         m_WeightingScheme = i_WeightingScheme;
-        m_p = i_p;
+        m_P = i_p;
         m_EfficientCheck  = i_DistanceCheck == DistanceCheck.Efficient;
-        m_k = k;
+        m_K = k;
 
     }
 
     private double distance(Instance one, Instance two){
         // Non efficient, p=INF
-        if (m_p == LpDistance.Infinity){
+        if (m_P == LpDistance.Infinity){
             return DistanceCalculator.distance(one, two);
         }
         // Non efficient, p!=INF
         else {
-            return DistanceCalculator.distance(one, two, m_p.getP());
+            return DistanceCalculator.distance(one, two, m_P.getP());
         }
     }
 
     private double distance(Instance one, Instance two, double threshold){
         // Efficient, p=INF
-        if (m_p == LpDistance.Infinity) {
+        if (m_P == LpDistance.Infinity) {
             return DistanceCalculator.distance(one, two, threshold);
         }
         // Efficient, p!=INF
         else {
-            return DistanceCalculator.distance(one, two, threshold, m_p.getP());
+            return DistanceCalculator.distance(one, two, threshold, m_P.getP());
         }
     }
 
@@ -261,23 +262,43 @@ public class Knn implements Classifier {
      * @return The cross validation error.
      */
     public double crossValidationError(Instances instances, int num_of_folds) throws Exception {
-        m_trainingInstances_Backup = m_trainingInstances;
+        m_TrainingInstances_Backup = m_TrainingInstances;
 
         Instances trainingSet, validationSet;
         instances.randomize(new Random(1));
 
         double errorSum = 0;
 
+        long startTime;
+        long estimatedTime;
+        long sumOfEstimatedTime = 0;
+
         for (int i = 0; i < num_of_folds; i++) {
 
             validationSet = instances.testCV(num_of_folds, i);
             trainingSet = instances.trainCV(num_of_folds, i);
-            m_trainingInstances = trainingSet;
+            m_TrainingInstances = trainingSet;
 
+            startTime = System.nanoTime();
             errorSum =+ calcAvgError(validationSet);
+            estimatedTime = System.nanoTime() - startTime;
+
+            sumOfEstimatedTime += estimatedTime;
         }
-        m_trainingInstances = m_trainingInstances_Backup;
+
+        m_TotalCVRunningTime = sumOfEstimatedTime;
+        m_AverageCVRunningTime = sumOfEstimatedTime / num_of_folds;
+
+        m_TrainingInstances = m_TrainingInstances_Backup;
         return errorSum;
+    }
+
+    public long getAverageCVRunningTime(){
+        return m_AverageCVRunningTime;
+    }
+
+    public long getTotalCVRunningTime(){
+        return m_TotalCVRunningTime;
     }
 
     /**
@@ -288,29 +309,29 @@ public class Knn implements Classifier {
         PriorityQueue<Entry> heap = new PriorityQueue<>();
 
         if (!m_EfficientCheck){
-            for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
-                Instance currentInstance = m_trainingInstances.get(i);
+            for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {
+                Instance currentInstance = m_TrainingInstances.get(i);
                 if (!currentInstance.equals(instance)){
                     heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
-                    if (heap.size() > m_k){
+                    if (heap.size() > m_K){
                         heap.poll();
                     }
                 }
             }
         }
         else {
-            for (int i = 0; i < m_trainingInstances.numInstances(); i++) {
-                Instance currentInstance = m_trainingInstances.get(i);
+            for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {
+                Instance currentInstance = m_TrainingInstances.get(i);
                 if (!currentInstance.equals(instance))
                     if (!heap.isEmpty()){
                         heap.add(new Entry(currentInstance, distance(currentInstance, instance, heap.peek().getDistance())));
-                        if (heap.size() > m_k){
+                        if (heap.size() > m_K){
                             heap.poll();
                         }
                     }
                     else {
                         heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
-                        if (heap.size() > m_k){
+                        if (heap.size() > m_K){
                             heap.poll();
                         }
                     }
@@ -332,7 +353,7 @@ public class Knn implements Classifier {
             entry = heap.poll();
             sum += entry.getInstance().classValue();
         }
-        return sum / m_k;
+        return sum / m_K;
     }
 
     /**

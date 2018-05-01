@@ -101,8 +101,8 @@ public class MainHW3 {
 
 
         int[] fold = {159, 50, 10, 3};
-        long startTime;
-        long estimatedTime;// = System.nanoTime() - startTime;
+        long totalTime;
+        long averageTime;
 
         for (int foldNumber : fold) {
             System.out.println("");
@@ -112,14 +112,11 @@ public class MainHW3 {
 
             for (Knn.DistanceCheck distanceCheck : Knn.DistanceCheck.values()) {
                 knn.setUp(chosenWeightingScheme, chosenP, distanceCheck, chosenK);
-                startTime = System.nanoTime();
                 error = knn.crossValidationError(trainingAutoPrice, foldNumber);
-                estimatedTime = System.nanoTime() - startTime;
-
 
                 System.out.println("Cross validation error of " + distanceCheck + " knn on auto_price dataset is " + error + " and");
-                System.out.println("the average elapsed time is " + estimatedTime);
-                System.out.println("The total elapsed time is: <total_elapsed_time_in_nano_seconds>");
+                System.out.println("the average elapsed time is " + knn.getAverageCVRunningTime());
+                System.out.println("The total elapsed time is: " + knn.getTotalCVRunningTime());
                 System.out.println("");
             }
         }
