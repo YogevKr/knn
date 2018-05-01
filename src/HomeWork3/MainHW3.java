@@ -101,8 +101,6 @@ public class MainHW3 {
 
 
         int[] fold = {159, 50, 10, 3};
-        long totalTime;
-        long averageTime;
 
         for (int foldNumber : fold) {
             System.out.println("");

@@ -10,27 +10,28 @@ import java.util.Random;
 
 class DistanceCalculator {
     /**
-    * We leave it up to you wheter you want the distance method to get all relevant
-    * parameters(lp, efficient, etc..) or have it has a class variables.
-    */
-    public static double distance (Instance one, Instance two, int p) {
+     * We leave it up to you wheter you want the distance method to get all relevant
+     * parameters(lp, efficient, etc..) or have it has a class variables.
+     */
+    public static double distance(Instance one, Instance two, int p) {
         return lpDistance(one, two, p);
     }
 
-    public static double distance (Instance one, Instance two, double threshold, int p) {
+    public static double distance(Instance one, Instance two, double threshold, int p) {
         return efficientLpDistance(one, two, threshold, p);
     }
 
-    public static double distance (Instance one, Instance two) {
+    public static double distance(Instance one, Instance two) {
         return lInfinityDistance(one, two);
     }
 
-    public static double distance (Instance one, Instance two, double threshold) {
+    public static double distance(Instance one, Instance two, double threshold) {
         return efficientLInfinityDistance(one, two, threshold);
     }
 
     /**
      * Returns the Lp distance between 2 instances.
+     *
      * @param one
      * @param two
      */
@@ -49,6 +50,7 @@ class DistanceCalculator {
 
     /**
      * Returns the L infinity distance between 2 instances.
+     *
      * @param one
      * @param two
      * @return
@@ -61,7 +63,7 @@ class DistanceCalculator {
         for (int i = 0; i < numOfAttributes; i++) {
             different = Math.abs(one.value(i) - two.value(i));
 
-            if (different > max){
+            if (different > max) {
                 max = different;
             }
         }
@@ -70,6 +72,7 @@ class DistanceCalculator {
 
     /**
      * Returns the Lp distance between 2 instances, while using an efficient distance check.
+     *
      * @param one
      * @param two
      * @return
@@ -86,22 +89,22 @@ class DistanceCalculator {
             absoluteValue = Math.abs(powerOfDifference);
             sum += absoluteValue;
 
-            if (sum > threshold){
+            if (sum > threshold) {
                 sum = Double.MAX_VALUE;
                 break;
             }
         }
 
-        if (sum != Double.MAX_VALUE){
+        if (sum != Double.MAX_VALUE) {
             return sum;
-        }
-        else{
+        } else {
             return Math.pow(sum, (1 / p));
         }
     }
 
     /**
      * Returns the Lp distance between 2 instances, while using an efficient distance check.
+     *
      * @param one
      * @param two
      * @return
@@ -113,10 +116,10 @@ class DistanceCalculator {
         for (int i = 0; i < numOfAttributes; i++) {
             different = Math.abs(one.value(i) - two.value(i));
 
-            if (different > max){
+            if (different > max) {
                 max = different;
 
-                if (max > threshold){
+                if (max > threshold) {
                     max = Double.MAX_VALUE;
                 }
             }
@@ -134,11 +137,11 @@ class Entry implements Comparable<Entry> {
         this.distance = distance;
     }
 
-    public Instance getInstance(){
+    public Instance getInstance() {
         return this.instance;
     }
 
-    public double getDistance(){
+    public double getDistance() {
         return this.distance;
     }
 
@@ -150,8 +153,10 @@ class Entry implements Comparable<Entry> {
 
 public class Knn implements Classifier {
 
-    public enum WeightingScheme{Uniform, Weighted}
-    public enum LpDistance {One(1), Two(2), Three(3), Infinity(0);
+    public enum WeightingScheme {Uniform, Weighted}
+
+    public enum LpDistance {
+        One(1), Two(2), Three(3), Infinity(0);
         private int p;
 
         LpDistance(int p) {
@@ -162,7 +167,8 @@ public class Knn implements Classifier {
             return p;
         }
     }
-    public enum DistanceCheck{Regular, Efficient}
+
+    public enum DistanceCheck {Regular, Efficient}
 
     private Instances m_TrainingInstances;
     private Instances m_TrainingInstances_Backup;
@@ -188,18 +194,18 @@ public class Knn implements Classifier {
     }
 
     public void setUp(WeightingScheme i_WeightingScheme, LpDistance i_p,
-                      DistanceCheck i_DistanceCheck, int k){
+                      DistanceCheck i_DistanceCheck, int k) {
 
         m_WeightingScheme = i_WeightingScheme;
         m_P = i_p;
-        m_EfficientCheck  = i_DistanceCheck == DistanceCheck.Efficient;
+        m_EfficientCheck = i_DistanceCheck == DistanceCheck.Efficient;
         m_K = k;
 
     }
 
-    private double distance(Instance one, Instance two){
+    private double distance(Instance one, Instance two) {
         // Non efficient, p=INF
-        if (m_P == LpDistance.Infinity){
+        if (m_P == LpDistance.Infinity) {
             return DistanceCalculator.distance(one, two);
         }
         // Non efficient, p!=INF
@@ -208,7 +214,7 @@ public class Knn implements Classifier {
         }
     }
 
-    private double distance(Instance one, Instance two, double threshold){
+    private double distance(Instance one, Instance two, double threshold) {
         // Efficient, p=INF
         if (m_P == LpDistance.Infinity) {
             return DistanceCalculator.distance(one, two, threshold);
@@ -221,16 +227,16 @@ public class Knn implements Classifier {
 
     /**
      * Returns the knn prediction on the given instance.
+     *
      * @param instance
      * @return The instance predicted value.
      */
     public double regressionPrediction(Instance instance) {
         PriorityQueue<Entry> heap = findNearestNeighbors(instance);
 
-        if (m_WeightingScheme == WeightingScheme.Weighted){
+        if (m_WeightingScheme == WeightingScheme.Weighted) {
             return getWeightedAverageValue(heap);
-        }
-        else {
+        } else {
             return getAverageValue(heap);
         }
     }
@@ -239,10 +245,11 @@ public class Knn implements Classifier {
      * Caclcualtes the average error on a give set of instances.
      * The average error is the average absolute error between the target value and the predicted
      * value across all insatnces.
+     *
      * @param instances
      * @return
      */
-    public double calcAvgError (Instances instances){
+    public double calcAvgError(Instances instances) {
         double sumOfErrors = 0, prediction;
         Instance currentInstance;
 
@@ -257,7 +264,8 @@ public class Knn implements Classifier {
 
     /**
      * Calculates the cross validation error, the average error on all folds.
-     * @param instances Insances used for the cross validation
+     *
+     * @param instances    Insances used for the cross validation
      * @param num_of_folds The number of folds to use.
      * @return The cross validation error.
      */
@@ -280,7 +288,7 @@ public class Knn implements Classifier {
             m_TrainingInstances = trainingSet;
 
             startTime = System.nanoTime();
-            errorSum =+ calcAvgError(validationSet);
+            errorSum = +calcAvgError(validationSet);
             estimatedTime = System.nanoTime() - startTime;
 
             sumOfEstimatedTime += estimatedTime;
@@ -293,45 +301,44 @@ public class Knn implements Classifier {
         return errorSum;
     }
 
-    public long getAverageCVRunningTime(){
+    public long getAverageCVRunningTime() {
         return m_AverageCVRunningTime;
     }
 
-    public long getTotalCVRunningTime(){
+    public long getTotalCVRunningTime() {
         return m_TotalCVRunningTime;
     }
 
     /**
      * Finds the k nearest neighbors.
+     *
      * @param instance
      */
-    public  PriorityQueue<Entry> findNearestNeighbors(Instance instance) {
+    public PriorityQueue<Entry> findNearestNeighbors(Instance instance) {
         PriorityQueue<Entry> heap = new PriorityQueue<>();
 
-        if (!m_EfficientCheck){
+        if (!m_EfficientCheck) {
             for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {
                 Instance currentInstance = m_TrainingInstances.get(i);
-                if (!currentInstance.equals(instance)){
+                if (!currentInstance.equals(instance)) {
                     heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
-                    if (heap.size() > m_K){
+                    if (heap.size() > m_K) {
                         heap.poll();
                     }
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {
                 Instance currentInstance = m_TrainingInstances.get(i);
                 if (!currentInstance.equals(instance))
-                    if (!heap.isEmpty()){
+                    if (!heap.isEmpty()) {
                         heap.add(new Entry(currentInstance, distance(currentInstance, instance, heap.peek().getDistance())));
-                        if (heap.size() > m_K){
+                        if (heap.size() > m_K) {
                             heap.poll();
                         }
-                    }
-                    else {
+                    } else {
                         heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
-                        if (heap.size() > m_K){
+                        if (heap.size() > m_K) {
                             heap.poll();
                         }
                     }
@@ -342,10 +349,11 @@ public class Knn implements Classifier {
 
     /**
      * Cacluates the average value of the given elements in the collection.
+     *
      * @param
      * @return
      */
-    public double getAverageValue (PriorityQueue<Entry> heap) {
+    public double getAverageValue(PriorityQueue<Entry> heap) {
         double sum = 0;
         Entry entry;
 
@@ -359,6 +367,7 @@ public class Knn implements Classifier {
     /**
      * Calculates the weighted average of the target values of all the elements in the collection
      * with respect to their distance from a specific instance.
+     *
      * @return
      */
     public double getWeightedAverageValue(PriorityQueue<Entry> heap) {
@@ -366,13 +375,13 @@ public class Knn implements Classifier {
         double distanceSquared, instanceValue;
         Entry currentEntry;
 
-        while (!heap.isEmpty()){
+        while (!heap.isEmpty()) {
             currentEntry = heap.poll();
 
             distanceSquared = Math.pow(currentEntry.getDistance(), 2);
             instanceValue = currentEntry.getInstance().classValue();
 
-            if (distanceSquared != 0){
+            if (distanceSquared != 0) {
                 sumOfValueDividedSquaredDistance += instanceValue / distanceSquared;
                 sumOfOneOverSquaredDistance += 1 / distanceSquared;
             }
