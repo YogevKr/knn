@@ -40,11 +40,11 @@ class DistanceCalculator {
         double absoluteValue, powerOfDifference, sum = 0;
 
         for (int i = 0; i < numOfAttributes; i++) {
-
             powerOfDifference = Math.pow((one.value(i) - two.value(i)), p);
             absoluteValue = Math.abs(powerOfDifference);
             sum += absoluteValue;
         }
+
         return Math.pow(sum, (1 / p));
     }
 
@@ -56,7 +56,6 @@ class DistanceCalculator {
      * @return
      */
     private static double lInfinityDistance(Instance one, Instance two) {
-        // TODO: 30/04/2018 Check if thats what they mean by efficient
         int numOfAttributes = one.numAttributes() - 1;
         double max = 0, different;
 
@@ -78,7 +77,6 @@ class DistanceCalculator {
      * @return
      */
     private static double efficientLpDistance(Instance one, Instance two, double threshold, int p) {
-        // TODO: 30/04/2018 Check if thats what they mean by efficient
         int numOfAttributes = one.numAttributes() - 1;
         double absoluteValue, powerOfDifference, sum = 0;
 
@@ -273,7 +271,6 @@ public class Knn implements Classifier {
         m_TrainingInstances_Backup = m_TrainingInstances;
 
         Instances trainingSet, validationSet;
-        instances.randomize(new Random(1));
 
         double errorSum = 0;
 
@@ -288,7 +285,7 @@ public class Knn implements Classifier {
             m_TrainingInstances = trainingSet;
 
             startTime = System.nanoTime();
-            errorSum = +calcAvgError(validationSet);
+            errorSum += calcAvgError(validationSet);
             estimatedTime = System.nanoTime() - startTime;
 
             sumOfEstimatedTime += estimatedTime;
@@ -298,7 +295,7 @@ public class Knn implements Classifier {
         m_AverageCVRunningTime = sumOfEstimatedTime / num_of_folds;
 
         m_TrainingInstances = m_TrainingInstances_Backup;
-        return errorSum;
+        return errorSum / num_of_folds;
     }
 
     public long getAverageCVRunningTime() {
@@ -320,12 +317,12 @@ public class Knn implements Classifier {
         if (!m_EfficientCheck) {
             for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {
                 Instance currentInstance = m_TrainingInstances.get(i);
-                if (!currentInstance.equals(instance)) {
+//                if (!currentInstance.equals(instance)) {
                     heap.add(new Entry(currentInstance, distance(currentInstance, instance)));
                     if (heap.size() > m_K) {
                         heap.poll();
                     }
-                }
+//                }
             }
         } else {
             for (int i = 0; i < m_TrainingInstances.numInstances(); i++) {

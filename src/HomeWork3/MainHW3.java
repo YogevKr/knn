@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Random;
 
 import weka.core.Instances;
 
@@ -30,7 +31,10 @@ public class MainHW3 {
 
     public static void main(String[] args) throws Exception {
         Instances trainingAutoPrice = loadData("/Users/yogev/Google Drive/IDC/Year 2/Semester 2/Machine Learning from Data/HW/3/HomeWork3/src/HomeWork3/auto_price.txt");
+        trainingAutoPrice.randomize(new Random(1));
+
         Instances scaled_trainingAutoPrice = FeatureScaler.scaleData(trainingAutoPrice);
+
 
         Knn knn = new Knn();
         knn.buildClassifier(trainingAutoPrice);
@@ -40,7 +44,7 @@ public class MainHW3 {
         int chosenK = 0;
         double bestError = Double.MAX_VALUE, error;
 
-        // Original
+        // Original data
         for (Knn.WeightingScheme weightingScheme : Knn.WeightingScheme.values()) {
             for (Knn.LpDistance p : Knn.LpDistance.values()) {
                 for (int k = 1; k <= 20; k++) {
@@ -71,7 +75,7 @@ public class MainHW3 {
             for (Knn.LpDistance scaled_p : Knn.LpDistance.values()) {
                 for (int scaled_k = 1; scaled_k <= 20; scaled_k++) {
                     scaled_knn.setUp(weightingScheme, scaled_p, Knn.DistanceCheck.Regular, scaled_k);
-                    scaled_error = scaled_knn.crossValidationError(trainingAutoPrice, 10);
+                    scaled_error = scaled_knn.crossValidationError(scaled_trainingAutoPrice, 10);
 
                     if (scaled_error < scaled_bestError) {
                         scaled_chosenWeightingScheme = weightingScheme;
@@ -100,8 +104,7 @@ public class MainHW3 {
                 ", majority function = " + scaled_chosenWeightingScheme + " for auto_price data is: " + scaled_bestError);
 
 
-        int[] fold = {159, 50, 10, 3};
-
+        int[] fold = {trainingAutoPrice.numInstances(), 50, 10, 3};
         for (int foldNumber : fold) {
             System.out.println("");
             System.out.println("----------------------------");
@@ -112,7 +115,7 @@ public class MainHW3 {
                 knn.setUp(chosenWeightingScheme, chosenP, distanceCheck, chosenK);
                 error = knn.crossValidationError(trainingAutoPrice, foldNumber);
 
-                System.out.println("Cross validation error of " + distanceCheck + " knn on auto_price dataset is " + error + " and");
+                System.out.print("Cross validation error of " + distanceCheck + " knn on auto_price dataset is " + error + " and ");
                 System.out.println("the average elapsed time is " + knn.getAverageCVRunningTime());
                 System.out.println("The total elapsed time is: " + knn.getTotalCVRunningTime());
                 System.out.println("");
