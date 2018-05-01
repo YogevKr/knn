@@ -264,7 +264,7 @@ public class Knn implements Classifier {
         m_trainingInstances_Backup = m_trainingInstances;
 
         Instances trainingSet, validationSet;
-        instances.randomize(new Random(0));
+        instances.randomize(new Random(1));
 
         double errorSum = 0;
 
