@@ -94,7 +94,7 @@ public class MainHW3 {
         System.out.println("Cross validation error with K =  " + chosenK + ", lp = " + chosenP +
                 ", majority function = " + chosenWeightingScheme + " for auto_price data is: " + bestError);
 
-        System.out.println("");
+        System.out.println();
 
         System.out.println("----------------------------");
         System.out.println("Results for scaled dataset: ");
@@ -106,19 +106,19 @@ public class MainHW3 {
 
         int[] fold = {trainingAutoPrice.numInstances(), 50, 10, 3};
         for (int foldNumber : fold) {
-            System.out.println("");
+            System.out.println();
             System.out.println("----------------------------");
             System.out.println("Results for " + foldNumber + " folds: ");
             System.out.println("----------------------------");
 
             for (Knn.DistanceCheck distanceCheck : Knn.DistanceCheck.values()) {
-                knn.setUp(chosenWeightingScheme, chosenP, distanceCheck, chosenK);
-                error = knn.crossValidationError(trainingAutoPrice, foldNumber);
+                scaled_knn.setUp(scaled_chosenWeightingScheme, scaled_chosenP, distanceCheck, scaled_chosenK);
+                error = scaled_knn.crossValidationError(trainingAutoPrice, foldNumber);
 
                 System.out.print("Cross validation error of " + distanceCheck + " knn on auto_price dataset is " + error + " and ");
-                System.out.println("the average elapsed time is " + knn.getAverageCVRunningTime());
-                System.out.println("The total elapsed time is: " + knn.getTotalCVRunningTime());
-                System.out.println("");
+                System.out.println("the average elapsed time is " + scaled_knn.getAverageCVRunningTime());
+                System.out.println("The total elapsed time is: " + scaled_knn.getTotalCVRunningTime());
+                System.out.println();
             }
         }
     }

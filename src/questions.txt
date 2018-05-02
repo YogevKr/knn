@@ -12,44 +12,44 @@ Cross validation error with K =  2, lp = One, majority function = Uniform for au
 ----------------------------
 Results for 159 folds:
 ----------------------------
-Cross validation error of Regular knn on auto_price dataset is 1266.6005270612075 and the average elapsed time is 285104
-The total elapsed time is: 45331570
+Cross validation error of Regular knn on auto_price dataset is 1426.7358490566037 and the average elapsed time is 279003
+The total elapsed time is: 44361556
 
-Cross validation error of Efficient knn on auto_price dataset is 1266.6005270612075 and the average elapsed time is 268661
-The total elapsed time is: 42717193
+Cross validation error of Efficient knn on auto_price dataset is 1426.7358490566037 and the average elapsed time is 256339
+The total elapsed time is: 40758008
 
 
 ----------------------------
 Results for 50 folds:
 ----------------------------
-Cross validation error of Regular knn on auto_price dataset is 1393.960098147757 and the average elapsed time is 936560
-The total elapsed time is: 46828017
+Cross validation error of Regular knn on auto_price dataset is 1500.5891666666666 and the average elapsed time is 954187
+The total elapsed time is: 47709383
 
-Cross validation error of Efficient knn on auto_price dataset is 1393.960098147757 and the average elapsed time is 692625
-The total elapsed time is: 34631268
+Cross validation error of Efficient knn on auto_price dataset is 1500.5891666666666 and the average elapsed time is 623754
+The total elapsed time is: 31187734
 
 
 ----------------------------
 Results for 10 folds:
 ----------------------------
-Cross validation error of Regular knn on auto_price dataset is 1464.973612645474 and the average elapsed time is 4251603
-The total elapsed time is: 42516037
+Cross validation error of Regular knn on auto_price dataset is 1583.150625 and the average elapsed time is 4094609
+The total elapsed time is: 40946098
 
-Cross validation error of Efficient knn on auto_price dataset is 1464.973612645474 and the average elapsed time is 3432231
-The total elapsed time is: 34322317
+Cross validation error of Efficient knn on auto_price dataset is 1583.150625 and the average elapsed time is 3381327
+The total elapsed time is: 33813271
 
 
 ----------------------------
 Results for 3 folds:
 ----------------------------
-Cross validation error of Regular knn on auto_price dataset is 1577.024315902957 and the average elapsed time is 11230810
-The total elapsed time is: 33692431
+Cross validation error of Regular knn on auto_price dataset is 1680.6037735849059 and the average elapsed time is 10831428
+The total elapsed time is: 32494285
 
-Cross validation error of Efficient knn on auto_price dataset is 1577.024315902957 and the average elapsed time is 9107787
-The total elapsed time is: 27323361
-
+Cross validation error of Efficient knn on auto_price dataset is 1680.6037735849059 and the average elapsed time is 7632398
+The total elapsed time is: 22897196
 
 ------------------------------------------------------------------------------------
+
 Theoretical questions:
 1.	In general, why do we expect feature scaling to have a positive effect on our kNN algorithm? Would we expect to have a positive effect of feature scaling in the context of decision tree algorithms?
 Feature scaling is preformed in order to prevent attributes in different scales (different units for example) to different influence on the distance calculations, thus providing us with more accurate neighbours.
