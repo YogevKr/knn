@@ -13,15 +13,12 @@ public class FeatureScaler {
 	 */
 	public static Instances scaleData(Instances instances) throws Exception {
 
-		// TODO: 29/04/2018 check about the Exception, Static??
 		Standardize filter = new Standardize();
 		Instances defaultStdData;
 
 		filter.setInputFormat(instances);
 		defaultStdData = Filter.useFilter(instances, filter);
 
-		System.out.println(defaultStdData.toString());
 		return defaultStdData;
-
 	}
 }

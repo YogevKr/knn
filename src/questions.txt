@@ -1,0 +1,60 @@
+Data results:
+----------------------------
+Results for original dataset:
+----------------------------
+Cross validation error with K =  4, lp = One, majority function = Weighted for auto_price data is: 1464.973612645474
+
+----------------------------
+Results for scaled dataset:
+----------------------------
+Cross validation error with K =  2, lp = One, majority function = Uniform for auto_price data is: 1467.7641666666666
+
+----------------------------
+Results for 159 folds:
+----------------------------
+Cross validation error of Regular knn on auto_price dataset is 1426.7358490566037 and the average elapsed time is 279003
+The total elapsed time is: 44361556
+
+Cross validation error of Efficient knn on auto_price dataset is 1426.7358490566037 and the average elapsed time is 256339
+The total elapsed time is: 40758008
+
+
+----------------------------
+Results for 50 folds:
+----------------------------
+Cross validation error of Regular knn on auto_price dataset is 1500.5891666666666 and the average elapsed time is 954187
+The total elapsed time is: 47709383
+
+Cross validation error of Efficient knn on auto_price dataset is 1500.5891666666666 and the average elapsed time is 623754
+The total elapsed time is: 31187734
+
+
+----------------------------
+Results for 10 folds:
+----------------------------
+Cross validation error of Regular knn on auto_price dataset is 1583.150625 and the average elapsed time is 4094609
+The total elapsed time is: 40946098
+
+Cross validation error of Efficient knn on auto_price dataset is 1583.150625 and the average elapsed time is 3381327
+The total elapsed time is: 33813271
+
+
+----------------------------
+Results for 3 folds:
+----------------------------
+Cross validation error of Regular knn on auto_price dataset is 1680.6037735849059 and the average elapsed time is 10831428
+The total elapsed time is: 32494285
+
+Cross validation error of Efficient knn on auto_price dataset is 1680.6037735849059 and the average elapsed time is 7632398
+The total elapsed time is: 22897196
+
+------------------------------------------------------------------------------------
+
+Theoretical questions:
+1.	In general, why do we expect feature scaling to have a positive effect on our kNN algorithm? Would we expect to have a positive effect of feature scaling in the context of decision tree algorithms?
+Feature scaling is preformed in order to prevent attributes in different scales (different units for example) to different influence on the distance calculations, thus providing us with more accurate neighbours.
+On decision trees, there should be no improvement, since on every decision, only one attribute is taken into consideration. Thus they are completely independent and scaling is not needed.
+
+2.	In class we saw we can perform an edited kNN algorihtm which used either backward or forward kNN to filter out instances.
+Could we use this procedure for our dataset? If so explain how, if not explain why.
+No, we could not use this on our dataset. Preforming that variation of kNN only provides us classification, whereas we are trying to predict a value.
